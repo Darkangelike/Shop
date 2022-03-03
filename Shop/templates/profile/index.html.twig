@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profile page{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+    <div class="card-group text-center">
+        <div class="card">
+            <div class="card-body">
+                Username: {{ app.user.username }}
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Addresses:</div>
+            {% for app.user.address %}
+                {% if app.user.address | length == 0 %}
+                <p>You do not have an address yet. <br>
+                Add one now:</p>
+
+                    {{ form(form) }}
+
+                {% else %}
+
+                <div class="card-body"></div>
+
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
