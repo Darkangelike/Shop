@@ -2,33 +2,71 @@
 
 {% block title %}Profile page{% endblock %}
 
+
 {% block body %}
 <style>
     .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
     .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
 </style>
-
     <div class="card-group text-center">
+            <div class="card">
+                <div class="card-header"><b>{{ app.user.username }}</b></div>
+                <div class="card-body">
+                    {% for address in app.user.addresses %}
+                        <div>
+                            <h5>Address n°{{ loop.index }}</h5>
+                            <p>{{ address.number }} {{ address.street }} <br>
+                                {{ address.zipcode }} {{ address.city }} <br>
+                                {{ address.country }}
+                            </p>
+
+                        </div>
+                        <hr>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card">
+                <div class="mt-4">
+
+                    {% if app.user.addresses %}
+                        {% if app.user.addresses | length == 0 %}
+                            <p class="mt-4">You do not have an address yet. <br>
+                                Add one now:</p>
+                        {% else %}
+                            <p>Enter a new address:</p>
+                        {% endif %}
+                    {% endif %}
+
+                    {{ form_start(form) }}
+                    {{ form_row(form.number) }}
+                    {{ form_row(form.street) }}
+                    {{ form_row(form.zipcode) }}
+                    {{ form_row(form.city) }}
+                    {{ form_row(form.country) }}
+                    <button type="submit" class="btn btn-info mt-3 mb-3">Create</button>
+                    {{ form_end(form) }}
+                </div>
+
+            </div>
+    </div>
+<h1 class="text-center">Order history:</h1>
+<div class="card-group text-center">
+    {% for order in app.user.orders %}
         <div class="card">
-            <div class="card-body">
-                Username: {{ app.user.username }}
+            <div class="card-header">
+                Order n° {{ loop.index }} made on {{ order.createdAt |date("Y-m-d") }}
+            </div>
+                <div class="card-body">
+                    <p>
+        {% for orderItem in order.orderItems %}
+                        {{ orderItem.product.name }} x {{ orderItem.quantity }} <br>
+        {% endfor %}
+                    </p>
+                </div>
+            <div class="card-footer">
+                Total: {{ order.total }} €
             </div>
         </div>
-        <div class="card">
-            <div class="card-header">Addresses:</div>
-            {% for app.user.address %}
-                {% if app.user.address | length == 0 %}
-                <p>You do not have an address yet. <br>
-                Add one now:</p>
-
-                    {{ form(form) }}
-
-                {% else %}
-
-                <div class="card-body"></div>
-
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div>
+    {% endfor %}
+</div>
 {% endblock %}

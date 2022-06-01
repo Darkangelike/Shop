@@ -10,6 +10,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 /**
  * @method User|null find($id, $lockMode = null, $lockVersion = null)
@@ -62,6 +63,63 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->_em->flush();
     }
 
+    /**
+    * @return User[] Returns an array of User objects
+    *
+    */
+    public function findNewUsersBetween($initialDate, $finalDate)
+    {
+        $now = new \DateTime();
+        $initialDate = $now->modify("-".$days."  day");
+
+        return $this->createQueryBuilder('u')
+            ->where("u.createdAt BETWEEN :initialDate AND :finalDate")
+            ->setParameter("initialDate", $initialDate)
+            /* ->andWhere('u.exampleField = :val') */
+            ->setParameter('finalDate', $now)
+            ->orderBy('u.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * @param $initialDate
+     * @param $finalDate
+     * @return float|int|mixed|string
+     */
+    public function findNewUsersFromTo($initialDate, $finalDate)
+    {
+        return $this->createQueryBuilder('u')
+            ->where("u.createdAt > :initialDate")
+            ->setParameter("initialDate", $initialDate)
+            ->andWhere('u.createdAt < :finalDate')
+            ->setParameter('finalDate', $finalDate)
+            ->orderBy('u.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+
+    /**
+     * @param \DateTime $start
+     * @param \DateTime $end
+     * @return float|int|mixed|string
+     *
+     */
+    public function findNewUsersFromToURL(\DateTime $start, \DateTime $end){
+
+        return $this->createQueryBuilder('u')
+            ->where("u.createdAt > :initialDate")
+            ->setParameter("initialDate", $start)
+            ->andWhere('u.createdAt < :finalDate')
+            ->setParameter('finalDate', $end)
+            ->orderBy('u.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // /**
     //  * @return User[] Returns an array of User objects
     //  */
@@ -78,6 +136,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         ;
     }
     */
+
 
     /*
     public function findOneBySomeField($value): ?User

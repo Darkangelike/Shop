@@ -2,11 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\Address;
+use App\Entity\Cart;
 use App\Entity\Product;
+use App\Form\AddressType;
 use App\Repository\ProductRepository;
 use App\Service\CartService;
+use Doctrine\ORM\EntityManagerInterface;
 use MongoDB\Driver\Session;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,11 +19,24 @@ use Symfony\Component\Routing\Annotation\Route;
 class CartController extends AbstractController
 {
     #[Route('/cart', name: 'cart')]
-    public function index(CartService $cartService): Response
+    public function index(CartService $cartService, EntityManagerInterface $manager, Request $request): Response
     {
-        return $this->render('cart/index.html.twig', [
+        $address = new Address();
+
+        $form = $this->createForm(AddressType::class, $address);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()){
+            $address->setUser($this->getUser());
+            $manager->persist($address);
+            $manager->flush();
+        }
+
+        return $this->renderForm('cart/index.html.twig', [
             "cart" => $cartService->getCart(),
-            "total" => $cartService->getTotal()
+            "total" => $cartService->getTotal(),
+            "form" => $form
         ]);
     }
 
@@ -26,9 +44,34 @@ class CartController extends AbstractController
      * @Route("/cart/add/{id}", name="cart_add")
      *
      */
-    public function addProduct(Product $product, CartService $cartService){
+    public function addProduct(Product $product, CartService $cartService, SessionInterface $session,
+                               EntityManagerInterface $manager){
+
+        if ($product){
 
         $cartService->addProduct($product);
+
+        $cart = $cartService->isCartInDatabase();
+
+        if (!$cart){
+        $cart = new Cart();
+        if ($this->getUser()){
+            $cart->setUser($this->getUser());
+        }
+
+        }
+        $cart->setSe($cartService->getSessionId());
+
+
+        $cart->setCreatedAt(new \DateTime());
+        $cart->setTotal($cartService->getTotal());
+
+        $session["cart"] = $cart;
+
+        $manager->persist($cart);
+        $manager->flush();
+
+        }
 
         return $this->redirectToRoute("cart");
     }
@@ -57,6 +100,19 @@ class CartController extends AbstractController
     public function removeRow(CartService $cartService, Product $product){
 
         $cartService->removeRow($product);
+
+        return $this->redirectToRoute("cart");
+    }
+
+    /**
+     *
+     * @Route("/cart/removeAll", name="cart_removeAll")
+     * @param CartService $cartService
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    public function removeAll(CartService $cartService){
+
+        $cartService->emptyCart();
 
         return $this->redirectToRoute("cart");
     }

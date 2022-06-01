@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Place your order{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+<div class="example-wrapper">
+    <h1>Hello {{ app.user.username }}! </h1>
+
+    Please review your cart content before placing the order:
+    <div>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Product name</th>
+                <th scope="col">Price per item</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in cartservice.getCart() %}
+                <tr>
+                    <th scope="row">{{ loop.index }}</th>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.price }}</td>
+                    <td><a href="{{ path("cart_remove", {id: item.product.id}) }}"><button class="btn
+            btn-danger">-</button></a>
+                        {{ item.quantity }}
+                        <a href="{{ path("cart_add", {id: item.product.id}) }}"><button class="btn
+            btn-success">+</button></a></td>
+                    <td>{{ item.product.price * item.quantity }}</td>
+                    <td>
+                        <a href="{{ path("cart_removeRow", {id: item.product.id}) }}"><button class="btn
+                btn-danger">Remove</button></a>
+                    </td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <th scope="row"></th>
+                <td></td>
+                <td></td>
+                <td>Total price:</td>
+                <td>{{ cartservice.getTotal() }}</td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+{% endblock %}

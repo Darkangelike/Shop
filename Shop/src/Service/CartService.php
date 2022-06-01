@@ -3,7 +3,9 @@
 namespace App\Service;
 
 use App\Entity\Product;
+use App\Repository\CartRepository;
 use App\Repository\ProductRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class CartService
@@ -11,17 +13,24 @@ class CartService
 
     private $session;
     private $repo;
+    private $manager;
 
-    public function __construct(SessionInterface $session, ProductRepository $repo){
+    public function __construct(SessionInterface $session, ProductRepository $repo, EntityManagerInterface $manager){
         $this->session = $session;
         $this->repo = $repo;
+        $this->manager = $manager;
     }
 
     /**
      * @return array
      */
-    public function getCart(){
+    public function getCart(CartService $cartService){
 
+        if ($cartService->getSessionId()){
+        $sessionId = $cartService->getSessionId();
+        $this->session->setId($sessionId);
+
+        }
         $cart = $this->session->get("cart", []);
         $productCart= [];
 
@@ -118,6 +127,12 @@ class CartService
      * @return void
      */
     public function emptyCart(){
+
+        $this->session->get("cart");
+
+        $this->manager->remove($this->isCartInDatabase());
+        $this->manager->flush();
+
         $this->session->remove("cart");
     }
 
@@ -136,4 +151,37 @@ class CartService
         return $count;
     }
 
+
+    /**
+     * @param SessionInterface $session
+     *
+     */
+    public function getSessionId(SessionInterface $session){
+        return $this->session->getId();
+    }
+
+
+    public function isCartInDatabase(CartRepository $cartRepo){
+
+        return $cartRepo->findOneBy("sessionId");
+    }
+
+
+    /*
+
+    public function isInDatabase(){
+
+        $session = new Session();
+
+        $idSession = $session->getId();
+
+        if ($this->getSessionId() == $idSession)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    */
 }

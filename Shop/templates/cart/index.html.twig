@@ -7,7 +7,9 @@
     .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
     .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
 </style>
-
+    <div class="bg-secondary d-flex justify-content-center">
+        <h1>Your cart content:</h1>
+    </div>
     <table class="table table-striped">
         <thead>
         <tr>
@@ -43,9 +45,63 @@
             <td></td>
             <td>Total price:</td>
             <td>{{ total }}</td>
-            <td></td>
+            <td>
+                <a href="{{ path("cart_removeAll") }}">
+                    <button class="btn btn-danger">Remove everything</button>
+                </a>
+                
+            </td>
         </tr>
         </tbody>
     </table>
+    <div class="bg-secondary d-flex justify-content-center">
+        <h1>Select an address for delivery:</h1>
+    </div>
+    <div class="card-group text-center">
+        <div class="card">
+            <div class="card-header"><b>Current known addresses:</b></div>
+            <div class="card-body">
+                {% for address in app.user.addresses %}
+                    <div class="d-flex justify-content-around">
+                        <div>
+                            <h5>Address n°{{ loop.index }}</h5>
+                            <p>{{ address.number }} {{ address.street }} <br>
+                                {{ address.zipcode }} {{ address.city }} <br>
+                                {{ address.country }}
+                            </p>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <a href="{{ path("order", {id:address.id}) }}">
+                                <button class="btn btn-info">Select this address<br> for delivery</button>
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="card">
+            <div class="mt-4">
 
+                {% if app.user.addresses %}
+                    {% if app.user.addresses | length == 0 %}
+                        <p class="mt-4">You do not have an address yet. <br>
+                            Add one now:</p>
+                    {% else %}
+                        <p>Enter a new address:</p>
+                    {% endif %}
+                {% endif %}
+
+                {{ form_start(form) }}
+                {{ form_row(form.number) }}
+                {{ form_row(form.street) }}
+                {{ form_row(form.zipcode) }}
+                {{ form_row(form.city) }}
+                {{ form_row(form.country) }}
+                <button type="submit" class="btn btn-info mt-3">Create</button>
+                {{ form_end(form) }}
+            </div>
+
+        </div>
+    </div>
 {% endblock %}
